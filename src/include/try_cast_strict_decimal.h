@@ -16,11 +16,7 @@ struct StrictDecimalCastData: DecimalCastData<T> {
 };
 
 struct StrictDecimalCastOperation: DecimalCastOperation {
-	/* Specialize the DuckDB provided implementation to count trailing decimal zeros.
-	 * Reuses the implementation of HandleDecimal from the DecimalCastOperation and adds counting of trailing zeros.
-	 * Ref: duckdb/common/operator/decimal_cast_operators.hpp
-	 */
-
+	/* Specialize the DuckDB provided implementation to count trailing decimal zeros. */
 	template <class T, bool NEGATIVE, bool ALLOW_EXPONENT>
 	static bool HandleDecimal(T &state, uint8_t digit) {
 

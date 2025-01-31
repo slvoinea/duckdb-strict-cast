@@ -19,16 +19,17 @@ namespace duckdb {
  */
 struct TryCastStrictBindInfo : public FunctionData {
 public:
-	TryCastStrictBindInfo(const LogicalType &cast_type): cast_type(cast_type) {}
+	TryCastStrictBindInfo(const LogicalType &cast_type, const char decimal_separator): cast_type(cast_type), decimal_separator(decimal_separator) {}
 public:
 	unique_ptr<FunctionData> Copy() const {
-		return make_uniq<TryCastStrictBindInfo>(cast_type);
+		return make_uniq<TryCastStrictBindInfo>(cast_type, decimal_separator);
 	}
 	bool Equals(const FunctionData &other) const {
 		return cast_type == dynamic_cast<const TryCastStrictBindInfo &>(other).cast_type;
 	}
 public:
 	LogicalType cast_type;
+	char decimal_separator;
 };
 
 /* Implements the actual scalar function.
@@ -82,59 +83,119 @@ inline void TryCastStrictScalarFun(DataChunk &args, ExpressionState &state, Vect
 		PhysicalType pysical_type = cast_type.InternalType();
 		if (cast_type.id() == LogicalTypeId::DECIMAL) {
 			// Convert to DECIMAL
-			switch (pysical_type) {
-				case PhysicalType::INT16:
-					TryCastStrictToDecimal<int16_t>(string_vec, result, count, cast_type);
+			if (cast_spec.decimal_separator == '.') {
+				switch (pysical_type) {
+					case PhysicalType::INT16:
+						TryCastStrictToDecimal<int16_t>(string_vec, result, count, cast_type);
 					break;
-				case PhysicalType::INT32:
-					TryCastStrictToDecimal<int32_t>(string_vec, result, count, cast_type);
+					case PhysicalType::INT32:
+						TryCastStrictToDecimal<int32_t>(string_vec, result, count, cast_type);
 					break;
-				case PhysicalType::INT64:
-					TryCastStrictToDecimal<int64_t>(string_vec, result, count, cast_type);
+					case PhysicalType::INT64:
+						TryCastStrictToDecimal<int64_t>(string_vec, result, count, cast_type);
 					break;
-				case PhysicalType::INT128:
-					TryCastStrictToDecimal<hugeint_t>(string_vec, result, count, cast_type);
+					case PhysicalType::INT128:
+						TryCastStrictToDecimal<hugeint_t>(string_vec, result, count, cast_type);
 					break;
-				case PhysicalType::INT8:
-					// This is not possible
-				default:
-					throw std::runtime_error("Unsupported DECIMAL type");
+					case PhysicalType::INT8:
+						// This is not possible
+							default:
+								throw std::runtime_error("Unsupported DECIMAL type");
+				}
+			}
+			else {
+				switch (pysical_type) {
+					case PhysicalType::INT16:
+						TryCastStrictToDecimal<int16_t,','>(string_vec, result, count, cast_type);
+					break;
+					case PhysicalType::INT32:
+						TryCastStrictToDecimal<int32_t,','>(string_vec, result, count, cast_type);
+					break;
+					case PhysicalType::INT64:
+						TryCastStrictToDecimal<int64_t,','>(string_vec, result, count, cast_type);
+					break;
+					case PhysicalType::INT128:
+						TryCastStrictToDecimal<hugeint_t,','>(string_vec, result, count, cast_type);
+					break;
+					case PhysicalType::INT8:
+						// This is not possible
+							default:
+								throw std::runtime_error("Unsupported DECIMAL type");
+				}
 			}
 		}
 		else { // Convert to INTEGER
-			switch (pysical_type) {
-				case PhysicalType::INT8:
-					TryCastStrictToInteger<int8_t>(string_vec, result, count);
+			if (cast_spec.decimal_separator == '.') {
+				switch (pysical_type) {
+					case PhysicalType::INT8:
+						TryCastStrictToInteger<int8_t>(string_vec, result, count);
 					break;
-				case PhysicalType::INT16:
-					TryCastStrictToInteger<int16_t>(string_vec, result, count);
+					case PhysicalType::INT16:
+						TryCastStrictToInteger<int16_t>(string_vec, result, count);
 					break;
-				case PhysicalType::INT32:
-					TryCastStrictToInteger<int32_t>(string_vec, result, count);
+					case PhysicalType::INT32:
+						TryCastStrictToInteger<int32_t>(string_vec, result, count);
 					break;
-				case PhysicalType::INT64:
-					TryCastStrictToInteger<int32_t>(string_vec, result, count);
+					case PhysicalType::INT64:
+						TryCastStrictToInteger<int32_t>(string_vec, result, count);
 					break;
-				case PhysicalType::INT128:
-					TryCastStrictToInteger<hugeint_t>(string_vec, result, count);
+					case PhysicalType::INT128:
+						TryCastStrictToInteger<hugeint_t>(string_vec, result, count);
 					break;
-				case PhysicalType::UINT8:
-					TryCastStrictToInteger<u_int8_t>(string_vec, result, count);
+					case PhysicalType::UINT8:
+						TryCastStrictToInteger<u_int8_t>(string_vec, result, count);
 					break;
-				case PhysicalType::UINT16:
-					TryCastStrictToInteger<u_int16_t>(string_vec, result, count);
+					case PhysicalType::UINT16:
+						TryCastStrictToInteger<u_int16_t>(string_vec, result, count);
 					break;
-				case PhysicalType::UINT32:
-					TryCastStrictToInteger<u_int32_t>(string_vec, result, count);
+					case PhysicalType::UINT32:
+						TryCastStrictToInteger<u_int32_t>(string_vec, result, count);
 					break;
-				case PhysicalType::UINT64:
-					TryCastStrictToInteger<u_int64_t>(string_vec, result, count);
+					case PhysicalType::UINT64:
+						TryCastStrictToInteger<u_int64_t>(string_vec, result, count);
 					break;
-				case PhysicalType::UINT128:
-					TryCastStrictToInteger<uhugeint_t>(string_vec, result, count);
+					case PhysicalType::UINT128:
+						TryCastStrictToInteger<uhugeint_t>(string_vec, result, count);
 					break;
-				default:
-					throw std::runtime_error("Unsupported INTEGER type");
+					default:
+						throw std::runtime_error("Unsupported INTEGER type");
+				}
+			}
+			else {
+				switch (pysical_type) {
+					case PhysicalType::INT8:
+						TryCastStrictToInteger<int8_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::INT16:
+						TryCastStrictToInteger<int16_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::INT32:
+						TryCastStrictToInteger<int32_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::INT64:
+						TryCastStrictToInteger<int32_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::INT128:
+						TryCastStrictToInteger<hugeint_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::UINT8:
+						TryCastStrictToInteger<u_int8_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::UINT16:
+						TryCastStrictToInteger<u_int16_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::UINT32:
+						TryCastStrictToInteger<u_int32_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::UINT64:
+						TryCastStrictToInteger<u_int64_t,','>(string_vec, result, count);
+					break;
+					case PhysicalType::UINT128:
+						TryCastStrictToInteger<uhugeint_t,','>(string_vec, result, count);
+					break;
+					default:
+						throw std::runtime_error("Unsupported INTEGER type");
+				}
 			}
 		}
 	}
@@ -159,12 +220,28 @@ inline void TryCastStrictScalarFun(DataChunk &args, ExpressionState &state, Vect
 }
 
 static unique_ptr<FunctionData> Bind(ClientContext &context, ScalarFunction &bound_function, vector<unique_ptr<Expression>> &arguments) {
-	if (arguments.size() != 2) {
-		throw BinderException("Not enough arguments to function 'try_cast_decimal_strict'");
+	if ((arguments.size() != 2) && (arguments.size() != 3)) {
+		throw BinderException("Function 'try_cast_strict' requires two arguments");
 	}
 
 	if (!arguments[1]->IsFoldable()) {
-		throw BinderException("'type' should resolve to a known type name");
+		throw BinderException("The 'type' argument should be an accepted type name (e.g., 'INTEGER')");
+	}
+
+	char decimal_separator = '.';
+	if (arguments.size() == 3) {
+		string err_msg = "The 'decimal_separator' argument should be either '.' or ','";
+		if (!arguments[2]->IsFoldable()) {
+			throw BinderException(err_msg);
+		}
+		auto arg_serparator = ExpressionExecutor::EvaluateScalar(context, *arguments[2]).GetValue<string>();
+		if (arg_serparator.length() != 1) {
+			throw BinderException(err_msg);
+		}
+		decimal_separator = arg_serparator[0];
+		if ((decimal_separator != '.') && (decimal_separator != ',')) {
+			throw BinderException(err_msg);
+		}
 	}
 
 	// Get the target LogicalType
@@ -173,18 +250,28 @@ static unique_ptr<FunctionData> Bind(ClientContext &context, ScalarFunction &bou
 	auto target_type = TransformStringToLogicalType(str_value);
 	bound_function.return_type = target_type;
 
-	return make_uniq<TryCastStrictBindInfo>(target_type);
+	return make_uniq<TryCastStrictBindInfo>(target_type, decimal_separator);
 }
 
 static void LoadInternal(DatabaseInstance &instance) {
-    // Register a scalar function
-    auto try_cast_strict_scalar_function = ScalarFunction(
-    	"try_cast_strict",
-    	{LogicalType::VARCHAR, LogicalType::VARCHAR},
+
+	// Three parameter variant (value, type, decimal_separator)
+	auto try_cast_strict_scalar_function_3p = ScalarFunction(
+    	"try_cast_strict_sp",
+    	{LogicalType::VARCHAR, LogicalType::VARCHAR, LogicalType::VARCHAR},
     	LogicalType::ANY,
     	TryCastStrictScalarFun,
     	Bind);
-    ExtensionUtil::RegisterFunction(instance, try_cast_strict_scalar_function);
+    ExtensionUtil::RegisterFunction(instance, try_cast_strict_scalar_function_3p);
+
+	// Two parameter variant (value, type)
+	auto try_cast_strict_scalar_function_2p = ScalarFunction(
+		"try_cast_strict",
+		{LogicalType::VARCHAR, LogicalType::VARCHAR},
+		LogicalType::ANY,
+		TryCastStrictScalarFun,
+		Bind);
+	ExtensionUtil::RegisterFunction(instance, try_cast_strict_scalar_function_2p);
 
 }
 

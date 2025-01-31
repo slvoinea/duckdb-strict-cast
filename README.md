@@ -7,10 +7,12 @@ This repository is based on https://github.com/duckdb/extension-template, check 
 This extension, `try_cast_strict`, allow you to perform a strict conversion when casting a string to a target `INTEGER` or `DECIMAL` type.
 In contrast to the DuckDB `try_cast` implementation, it does not round numbers, but produces a `NULL` value instead.
 
+A three argument version is also available (`try_cast_strict`), allowing to specify the decimal separator,
+
 Examples:
 
 ```sql
-select try_cast('1.123' as DECIMAL(2,1)) as result;
+SELECT try_cast('1.12' AS DECIMAL(2,1)) AS result;
 ┌──────────────┐
 │    result    │
 │ decimal(2,1) │
@@ -18,7 +20,7 @@ select try_cast('1.123' as DECIMAL(2,1)) as result;
 │          1.1 │
 └──────────────┘
 
-select try_cast_strict('1.123', 'DECIMAL(2,1)') as result;
+SELECT try_cast_strict('1.12', 'DECIMAL(2,1)') AS result;
 ┌──────────────┐
 │    result    │
 │ decimal(2,1) │
@@ -26,7 +28,15 @@ select try_cast_strict('1.123', 'DECIMAL(2,1)') as result;
 │              │
 └──────────────┘
 
-select try_cast('1.1' as INTEGER) as result;
+SELECT try_cast_strict('1.1', 'DECIMAL(2,1)') AS result;
+┌──────────────┐
+│    result    │
+│ decimal(2,1) │
+├──────────────┤
+│         1.1  │
+└──────────────┘
+
+SELECT try_cast('1.1' AS INTEGER) AS result;
 ┌────────┐
 │ result │
 │ int32  │
@@ -34,18 +44,26 @@ select try_cast('1.1' as INTEGER) as result;
 │      1 │
 └────────┘
 
-select try_cast_strict('1.1', 'INTEGER') as result;
+SELECT try_cast_strict('1.1', 'INTEGER') AS result;
 ┌────────┐
 │ result │
 │ int32  │
 ├────────┤
 │        │
 └────────┘
+
+SELECT try_cast_strict_sp('0,12e1', 'DECIMAL(3,1)', ',') AS result;
+┌──────────────┐
+│    result    │
+│ decimal(3,1) │
+├──────────────┤
+│          1.2 │
+└──────────────┘
 ```
 
 ## Limitations
 
-- It only handles the `.` decimal separator. 
+- Handles exponent notation only when casting to `DECIMAL` (i.e., not when casting to `INTEGER`). 
 
 
 

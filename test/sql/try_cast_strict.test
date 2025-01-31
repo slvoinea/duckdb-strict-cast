@@ -15,7 +15,7 @@ require try_cast_strict
 #--- Integer cast
 
 query I
-SELECT try_cast_strict('1.1', 'INTEGER');
+SELECT try_cast_strict('a', 'INTEGER');
 ----
 NULL
 
@@ -24,10 +24,51 @@ SELECT try_cast_strict('1', 'INTEGER');
 ----
 1
 
+query I
+SELECT try_cast_strict('-1', 'INTEGER');
+----
+-1
+
+query I
+SELECT try_cast_strict('1.1', 'INTEGER');
+----
+NULL
+
+query I
+SELECT try_cast_strict('1.0', 'INTEGER');
+----
+1
+
+query I
+SELECT try_cast_strict_sp('1,1', 'INTEGER', ',');
+----
+NULL
+
+query I
+SELECT try_cast_strict_sp('1,0', 'INTEGER', ',');
+----
+1
+
+
 #--- Decimal cast
 
 query I
+SELECT try_cast_strict('a', 'DECIMAL(1,0)');
+----
+NULL
+
+query I
 SELECT try_cast_strict('1', 'DECIMAL(1,0)');
+----
+1
+
+query I
+SELECT try_cast_strict('-1', 'DECIMAL(1,0)');
+----
+-1
+
+query I
+SELECT try_cast_strict('1.0', 'DECIMAL(1,0)');
 ----
 1
 
@@ -37,11 +78,51 @@ SELECT try_cast_strict('1.1', 'DECIMAL(1,0)');
 NULL
 
 query I
-SELECT try_cast_strict('1.0', 'DECIMAL(1,0)');
-----
-1
-
-query I
 SELECT try_cast_strict('1.100', 'DECIMAL(3,2)');
 ----
 1.10
+
+query I
+SELECT try_cast_strict('1.120', 'DECIMAL(3,2)');
+----
+1.12
+
+query I
+SELECT try_cast_strict('1.123', 'DECIMAL(3,2)');
+----
+NULL
+
+query I
+SELECT try_cast_strict('0.12e1', 'DECIMAL(3,1)');
+----
+1.2
+
+query I
+SELECT try_cast_strict('0.123e1', 'DECIMAL(3,1)');
+----
+NULL
+
+query I
+SELECT try_cast_strict_sp('a', 'DECIMAL(3,2)', ',');
+----
+NULL
+
+query I
+SELECT try_cast_strict_sp('1,100', 'DECIMAL(3,2)', ',');
+----
+1.10
+
+query I
+SELECT try_cast_strict_sp('1,120', 'DECIMAL(3,2)', ',');
+----
+1.12
+
+query I
+SELECT try_cast_strict_sp('1,123', 'DECIMAL(3,2)', ',');
+----
+NULL
+
+query I
+SELECT try_cast_strict_sp('0,12e1', 'DECIMAL(3,1)', ',');
+----
+1.2

@@ -10,8 +10,11 @@
 namespace duckdb {
 
 struct StrictIntegerCastOperation: IntegerCastOperation {
-    /* This should specialize the DuckDB provided implementation if needed.
-     */
+    /* Specializes the DuckDB provided implementation by stopping as soon as non-zero decimals are detected. */
+    template <class T, bool NEGATIVE, bool ALLOW_EXPONENT>
+    static bool HandleDecimal(T &state, uint8_t digit) {
+        return (digit == 0);
+    }
 };
 
 template <class DST, char decimal_separator = '.'>
@@ -31,7 +34,7 @@ static inline void TryCastStrictToInteger(Vector &string_vec, Vector &result, id
                 mask.SetInvalid(idx);
                 return static_cast<DST>(0);
             }
-            return cast_data.result;
+            return static_cast<DST>(cast_data.result);
         });
 }
 
