@@ -126,3 +126,10 @@ query I
 SELECT try_cast_strict_sp('0,12e1', 'DECIMAL(3,1)', ',');
 ----
 1.2
+
+#--- Other casts
+
+query I
+select try_cast_strict('1.11111119', 'FLOAT') as result;
+----
+1.1111112
