@@ -29,7 +29,7 @@ SELECT try_cast_strict('1.12', 'DECIMAL(2,1)') AS result;
 │    result    │
 │ decimal(2,1) │
 ├──────────────┤
-│              │
+│     NULL     │
 └──────────────┘
 
 SELECT try_cast_strict('1.1', 'DECIMAL(2,1)') AS result;
@@ -53,7 +53,7 @@ SELECT try_cast_strict('1.1', 'INTEGER') AS result;
 │ result │
 │ int32  │
 ├────────┤
-│        │
+│  NULL  │
 └────────┘
 
 select try_cast_strict('1.11111119', 'FLOAT') as result;
@@ -84,8 +84,6 @@ SELECT try_cast_strict_sp('0,12e1', 'DECIMAL(3,1)', ',') AS result;
 
 - Handles exponent notation only when casting to `DECIMAL` (i.e., not when casting
 to `INTEGER`). 
-
-
 
 ## Building
 
@@ -152,7 +150,7 @@ Assume you want to upgrade to version `1.4.0` of DuckDB
   ```sh
   git tag v1.4.0
   ```
-- Commit and push changes
+- Commit and push changes. Do not forget to push the tags (`git push origin --tags`).
 
 ## Running the extension
 To run the extension code, simply start the shell with `./build/release/duckdb`.

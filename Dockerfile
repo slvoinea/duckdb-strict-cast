@@ -12,7 +12,10 @@ RUN apt-get update && \
 
 # Checkout the "duckdb-strict-cast" extension
 WORKDIR /home
-RUN git clone https://github.com/slvoinea/duckdb-strict-cast.git
+ARG GIT_TAG
+RUN git clone https://github.com/slvoinea/duckdb-strict-cast.git && \
+    cd duckdb-strict-cast && \
+    git checkout $GIT_TAG
 
 # Update submodules
 WORKDIR /home/duckdb-strict-cast
