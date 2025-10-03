@@ -7,7 +7,6 @@
 #include "duckdb.hpp"
 #include "duckdb/common/exception.hpp"
 #include "duckdb/function/scalar_function.hpp"
-#include "duckdb/main/extension_util.hpp"
 #include <duckdb/parser/parsed_data/create_scalar_function_info.hpp>
 #include <duckdb/planner/expression/bound_function_expression.hpp>
 
@@ -253,7 +252,7 @@ static unique_ptr<FunctionData> Bind(ClientContext &context, ScalarFunction &bou
 	return make_uniq<TryCastStrictBindInfo>(target_type, decimal_separator);
 }
 
-static void LoadInternal(DatabaseInstance &instance) {
+static void LoadInternal(ExtensionLoader &loader) {
 
 	// Three parameter variant (value, type, decimal_separator)
 	auto try_cast_strict_scalar_function_3p = ScalarFunction(
@@ -262,7 +261,7 @@ static void LoadInternal(DatabaseInstance &instance) {
     	LogicalType::ANY,
     	TryCastStrictScalarFun,
     	Bind);
-    ExtensionUtil::RegisterFunction(instance, try_cast_strict_scalar_function_3p);
+    loader.RegisterFunction(try_cast_strict_scalar_function_3p);
 
 	// Two parameter variant (value, type)
 	auto try_cast_strict_scalar_function_2p = ScalarFunction(
@@ -271,12 +270,12 @@ static void LoadInternal(DatabaseInstance &instance) {
 		LogicalType::ANY,
 		TryCastStrictScalarFun,
 		Bind);
-	ExtensionUtil::RegisterFunction(instance, try_cast_strict_scalar_function_2p);
+	loader.RegisterFunction(try_cast_strict_scalar_function_2p);
 
 }
 
-void TryCastStrictExtension::Load(DuckDB &db) {
-	LoadInternal(*db.instance);
+void TryCastStrictExtension::Load(ExtensionLoader &loader) {
+	LoadInternal(loader);
 }
 std::string TryCastStrictExtension::Name() {
 	return "try_cast_strict";
@@ -294,16 +293,9 @@ std::string TryCastStrictExtension::Version() const {
 
 extern "C" {
 
-DUCKDB_EXTENSION_API void try_cast_strict_init(duckdb::DatabaseInstance &db) {
-    duckdb::DuckDB db_wrapper(db);
-    db_wrapper.LoadExtension<duckdb::TryCastStrictExtension>();
-}
-
-DUCKDB_EXTENSION_API const char *try_cast_strict_version() {
-	return duckdb::DuckDB::LibraryVersion();
+DUCKDB_CPP_EXTENSION_ENTRY(try_cast_strict, loader) {
+	duckdb::LoadInternal(loader);
 }
 }
 
-#ifndef DUCKDB_EXTENSION_MAIN
-#error DUCKDB_EXTENSION_MAIN not defined
-#endif
+

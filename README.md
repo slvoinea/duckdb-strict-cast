@@ -105,7 +105,7 @@ this step the build may not work without removing the dependency.
 ### Build steps
 Now to build the extension, run:
 ```sh
-make
+GEN=ninja make
 ```
 The main binaries that will be built are:
 ```sh
@@ -119,6 +119,49 @@ loaded.
 into the binary.
 - `try_cast_strict.duckdb_extension` is the loadable binary as it would be distributed.
 
+### Upgrading DuckDB version
+
+Assume you want to upgrade to version `1.4.0` of DuckDB
+> **NOTE**: This procedure omits potential updates required by API changes 
+
+- Update the version in `.github/workflows/MainDistributionPipeline.yml` 
+- Update the `duckdb` submodule main branch to the desired version tag
+  - Switch to the `duckdb` module associated folder:
+     `cd duckdb`
+  - Fetch new changes: 
+     `git fetch`
+  - Checkout the tag associated to the version: 
+     `git checkout v1.4.0`
+  - Check the tag is updated: 
+     `git tag --points-at HEAD`
+  - Update contents:
+     `git pull`
+- Update the `extension-ci-tools` submodule branch to the corresponding version
+  - Check version corresponding branch name at
+     `https://github.com/duckdb/extension-ci-tools`
+  - Switch to the `duckdb` module associated folder:
+     `cd extension-ci-tools`
+  - Fetch new changes:
+      `git fetch`
+  - Checkout the associated branch:
+     `git checkout v1.4.0`
+  - Update contents:
+      `git pull`
+- Build the project
+  ```sh
+  make clean
+  GEN=ninja make
+  ```  
+- Test
+  ```shell
+  make test
+  ```
+- Tag the new version:
+  ```sh
+  git tag v1.4.0
+  ```
+- Commit and push changes
+
 ## Running the extension
 To run the extension code, simply start the shell with `./build/release/duckdb`.
 
@@ -126,13 +169,13 @@ Now we can use the features from the extension directly in DuckDB. The template
 contains a single scalar function `try_cast_strict()` that takes a string arguments
 and returns a string:
 ```
-D select try_cast_strict('1', 'INTEGER') as result;
-┌───────────────┐
-│    result     │
-│    varchar    │
-├───────────────┤
-│             1 │ 
-└───────────────┘
+D select try_cast_strict('1.1', 'INTEGER') as result;
+┌────────┐
+│ result │
+│ int32  │
+├────────┤
+│  NULL  │
+└────────┘
 ```
 
 ## Running the tests
