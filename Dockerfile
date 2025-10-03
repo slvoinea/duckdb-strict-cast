@@ -1,5 +1,5 @@
 # Start from the official GCC image (Debian-based)
-FROM gcc:latest
+FROM gcc:13.4.0-bookworm
 
 # Install required packages and CMake
 RUN apt-get update && \
